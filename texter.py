@@ -6,7 +6,7 @@ import time
 
 from subprocess import Popen, PIPE
 
-ascript = """
+ascript_total = """
 activate application "Messages"
     tell application "System Events" to tell process "Messages"
     key code 45 using command down
@@ -17,13 +17,38 @@ activate application "Messages"
 end tell 
 """
 
+
+ascript = """
+activate application "Messages"
+    tell application "System Events" to tell process "Messages"
+    key code 45 using command down
+    keystroke "{}"
+    key code 36
+    keystroke "{}"
+end tell 
+"""
+
+
+
+def send_enter():
+    enter_script = """
+    activate application "Messages"
+        tell application "System Events" to tell process "Messages"
+        key code 36
+    end tell 
+    """
+    p = Popen(['osascript', '-'], stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    stdout, stderr = p.communicate(enter_script)
+
 def send_text(phone_number, message):
     p = Popen(['osascript', '-'], stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     fscript = ascript.format(phone_number, message)
     stdout, stderr = p.communicate(fscript)
+    time.sleep(4)
+    send_enter()
     if p.returncode == 0:
         print (f"attempted to send text to {phone_number}")
-    else
+    else:
         print (f"something went wrong sending to {phone_number}")
 
 
@@ -41,9 +66,10 @@ def main():
     with open(args.recipient_file, "r") as fp:
         rdr = csv.reader(fp, delimiter=',')
         for row in rdr:
-            fmessage = message.format(*row[:1])
+            fmessage = message.format(row[1])
             send_text(row[0], fmessage)
-            time.sleep(30)
+            time.sleep(60)
 
 if __name__ == "__main__":
+    #print ("remember youmade changes to have it hit enter after a delay")
     main()
